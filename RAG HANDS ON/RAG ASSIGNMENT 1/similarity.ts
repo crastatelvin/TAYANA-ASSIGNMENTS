@@ -38,7 +38,7 @@ async function main() {
     // Generate embeddings using Gemini
     const result = await model.batchEmbedContents({
         requests: sentences.map((t) => ({
-            content: { parts: [{ text: t }] },
+            content: { role: "user", parts: [{ text: t }] },
         })),
     });
 
