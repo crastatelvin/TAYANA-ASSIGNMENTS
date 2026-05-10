@@ -5,6 +5,7 @@ import { FileModel } from "../models/file.model";
 export class UploadController {
   static async upload(req: Request, res: Response) {
     try {
+      console.log(`--- 📂 UPLOAD STARTED: ${req.file?.originalname} ---`);
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded." });
       }

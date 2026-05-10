@@ -18,4 +18,16 @@ app.use("/api", authRoutes);
 app.use("/api", chatRoutes);
 app.use("/api", uploadRoutes);
 
+// Health check
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+// Global Error Handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("❌ GLOBAL ERROR:", err);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error",
+    error: process.env.NODE_ENV === "production" ? {} : err
+  });
+});
+
 export default app;
