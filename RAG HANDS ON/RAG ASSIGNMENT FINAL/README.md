@@ -91,24 +91,24 @@ Users can:
                            │
                            ▼
 ┌───────────────────────────────────────────────────────────────────┐
-│                   Express Backend (Railway)                        │
+│                   Express Backend (Railway)                       │
 │                                                                   │
-│  Middleware: CORS + JWT Auth + Rate Limiting + Multer              │
+│  Middleware: CORS + JWT Auth + Rate Limiting + Multer             │
 │                                                                   │
-│  POST /upload ─► upload.controller ─► ingestionQueue.add()         │
+│  POST /upload ─► upload.controller ─► ingestionQueue.add()        │
 │  GET  /chat   ─► cache check ─► retrieval ─► LLM ─► cache set     │
 │  GET  /stream ─► cache check ─► retrieval ─► LLM stream ─► SSE    │
-│  GET  /files/:id/status ─► MongoDB status polling                  │
+│  GET  /files/:id/status ─► MongoDB status polling                 │
 │                                                                   │
 └───────────┬───────────────────────────────────────────────────────┘
             │
             ▼
 ┌───────────────────────────────────────────────────────────────────┐
-│                   Background Worker (Railway)                      │
+│                   Background Worker (Railway)                     │
 │                                                                   │
-│  BullMQ Consumer ─► Extract Text ─► Chunk (800/150)                │
-│                  ─► Gemini Embed ─► Qdrant Upsert                  │
-│                  ─► MongoDB status: COMPLETED / FAILED             │
+│  BullMQ Consumer ─► Extract Text ─► Chunk (800/150)               │
+│                  ─► Gemini Embed ─► Qdrant Upsert                 │
+│                  ─► MongoDB status: COMPLETED / FAILED            │
 │                                                                   │
 └───────────────────────────────────────────────────────────────────┘
             │
