@@ -26,13 +26,13 @@ mongoose.connect(process.env.MONGO_URI!).then(() => {
 export const ingestionWorker = new Worker(
   "document-ingestion",
   async (job) => {
-    const { filePath, userId, fileId, fileName } = job.data;
+    const { fullText, userId, fileId, fileName } = job.data;
 
     try {
       console.log(`Processing file ${fileId} for user ${userId}`);
 
-      // 1. Extract text
-      const text = await extractText(filePath);
+      // 1. Text is already extracted by the API
+      const text = fullText;
 
       // 2. Chunk
       const splitter = new RecursiveCharacterTextSplitter({

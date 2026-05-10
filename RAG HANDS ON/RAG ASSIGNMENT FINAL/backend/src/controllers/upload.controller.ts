@@ -15,17 +15,20 @@ export class UploadController {
       }
 
       const file = req.file;
+      
+      // 1. Extract text immediately on the API server
+      const { fullText } = await import("../services/upload.service").then(m => m.UploadService.processFile(file));
 
-      // 1. Create DB record
+      // 2. Create DB record
       const record = await FileModel.create({
         userId,
         fileName: file.originalname,
         status: "PROCESSING",
       });
 
-      // 2. Add job to queue
+      // 3. Add job to queue with EXTRACTED TEXT
       await ingestionQueue.add("process-file", {
-        filePath: file.path,
+        fullText,
         fileName: file.originalname,
         userId,
         fileId: record._id.toString(),
