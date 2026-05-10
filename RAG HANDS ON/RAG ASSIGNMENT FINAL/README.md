@@ -55,36 +55,6 @@ Users can:
 
 ---
 
-## 🚀 Live Demo
-**Production URL**: [https://documind-kohl.vercel.app/](https://documind-kohl.vercel.app/)
-
----
-
-## 📸 Application Preview
-
-<div align="center">
-  <h3>1. Secure Login Portal</h3>
-  <img src="docs/screenshots/01_login.png" width="800px" alt="Login Page">
-  <br/>
-  
-  <h3>2. Intelligent Dashboard (Empty State)</h3>
-  <img src="docs/screenshots/02_dashboard_empty.png" width="800px" alt="Dashboard Empty">
-  <br/>
-  
-  <h3>3. Real-time Background Ingestion</h3>
-  <img src="docs/screenshots/03_processing.png" width="800px" alt="Processing Ingestion">
-  <br/>
-  
-  <h3>4. Vectorization & Indexing Complete</h3>
-  <img src="docs/screenshots/04_indexing_complete.png" width="800px" alt="Indexing Complete">
-  <br/>
-  
-  <h3>5. Streaming RAG Chat with Citations</h3>
-  <img src="docs/screenshots/05_chat_answer.png" width="800px" alt="Chat Answer">
-</div>
-
----
-
 ## ✨ Features
 
 | Feature | Description |
@@ -121,24 +91,24 @@ Users can:
                            │
                            ▼
 ┌───────────────────────────────────────────────────────────────────┐
-│                   Express Backend (Railway)                        │
+│                   Express Backend (Railway)                       │
 │                                                                   │
-│  Middleware: CORS + JWT Auth + Rate Limiting + Multer              │
+│  Middleware: CORS + JWT Auth + Rate Limiting + Multer             │
 │                                                                   │
-│  POST /upload ─► upload.controller ─► ingestionQueue.add()         │
+│  POST /upload ─► upload.controller ─► ingestionQueue.add()        │
 │  GET  /chat   ─► cache check ─► retrieval ─► LLM ─► cache set     │
 │  GET  /stream ─► cache check ─► retrieval ─► LLM stream ─► SSE    │
-│  GET  /files/:id/status ─► MongoDB status polling                  │
+│  GET  /files/:id/status ─► MongoDB status polling                 │
 │                                                                   │
 └───────────┬───────────────────────────────────────────────────────┘
             │
             ▼
 ┌───────────────────────────────────────────────────────────────────┐
-│                   Background Worker (Railway)                      │
+│                   Background Worker (Railway)                     │
 │                                                                   │
-│  BullMQ Consumer ─► Extract Text ─► Chunk (800/150)                │
-│                  ─► Gemini Embed ─► Qdrant Upsert                  │
-│                  ─► MongoDB status: COMPLETED / FAILED             │
+│  BullMQ Consumer ─► Extract Text ─► Chunk (800/150)               │
+│                  ─► Gemini Embed ─► Qdrant Upsert                 │
+│                  ─► MongoDB status: COMPLETED / FAILED            │
 │                                                                   │
 └───────────────────────────────────────────────────────────────────┘
             │
