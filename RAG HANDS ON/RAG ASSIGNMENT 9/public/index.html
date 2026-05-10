@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Stream - Premium AI UX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        p.subtitle {
+            color: var(--muted);
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        #ask-btn {
+            background: var(--accent);
+            color: #0f172a;
+        }
+
+        #stop-btn {
+            background: #ef4444;
+            color: white;
+            display: none;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #response-container {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 100px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            border: 1px solid #334155;
+            position: relative;
+        }
+
+        /* Cursor Animation */
+        .cursor::after {
+            content: "|";
+            font-weight: bold;
+            color: var(--accent);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .token-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>RAG Streaming AI</h1>
+        <p class="subtitle">Real-time answers powered by Gemini 2.5 Flash & SSE</p>
+
+        <div class="input-group">
+            <input type="text" id="token" placeholder="Paste JWT Token here..." style="flex: 2;">
+            <input type="text" id="query" placeholder="Ask your documents..." value="What is a vector database?" style="flex: 3;">
+            <button id="ask-btn">Ask AI</button>
+            <button id="stop-btn">Stop</button>
+        </div>
+
+        <div id="response-container">
+            <span id="response-text" class="cursor">Waiting for input...</span>
+        </div>
+        
+        <div class="token-info" id="status">Status: Ready</div>
+    </div>
+
+    <script>
+        const askBtn = document.getElementById('ask-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const queryInput = document.getElementById('query');
+        const tokenInput = document.getElementById('token');
+        const responseText = document.getElementById('response-text');
+        const statusText = document.getElementById('status');
+
+        let abortController = null;
+
+        const askQuestion = async () => {
+            const question = queryInput.value;
+            const token = tokenInput.value;
+            if (!question) return;
+            if (!token) {
+                alert("Please paste a valid JWT token first!");
+                return;
+            }
+
+            // Reset UI
+            responseText.innerText = "";
+            responseText.classList.add('cursor');
+            askBtn.style.display = 'none';
+            stopBtn.style.display = 'block';
+            statusText.innerText = "Status: Streaming...";
+
+            // 1. Production Improvement: Abort Controller
+            abortController = new AbortController();
+
+            try {
+                const response = await fetch(
+                    `/api/chat/stream?q=${encodeURIComponent(question)}`,
+                    {
+                        signal: abortController.signal,
+                        headers: {
+                            Authorization: `Bearer ${token}` 
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error("Server error");
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split("\n\n");
+
+                    for (let line of lines) {
+                        if (line.startsWith("data: ")) {
+                            const text = line.replace("data: ", "");
+                            if (text === "[DONE]") {
+                                finalize();
+                                return;
+                            }
+                            // Update UI live
+                            responseText.innerText += text;
+                        }
+                    }
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    statusText.innerText = "Status: Stream Cancelled";
+                } else {
+                    responseText.innerText = "Error: " + error.message;
+                }
+            } finally {
+                finalize();
+            }
+        };
+
+        function finalize() {
+            responseText.classList.remove('cursor');
+            askBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            if (statusText.innerText === "Status: Streaming...") {
+                statusText.innerText = "Status: Completed";
+            }
+        }
+
+        askBtn.addEventListener('click', askQuestion);
+        stopBtn.addEventListener('click', () => {
+            if (abortController) abortController.abort();
+        });
+        
+        queryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') askQuestion();
+        });
+    </script>
+</body>
+</html>
