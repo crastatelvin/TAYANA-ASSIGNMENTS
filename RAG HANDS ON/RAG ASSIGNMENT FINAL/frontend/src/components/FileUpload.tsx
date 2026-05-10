@@ -13,7 +13,7 @@ export default function FileUpload({ token }: FileUploadProps) {
   const [statusType, setStatusType] = useState<"info" | "success" | "error" | "">("");
   const [processingId, setProcessingId] = useState<string | null>(null);
   
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
